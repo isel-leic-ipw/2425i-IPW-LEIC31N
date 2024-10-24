@@ -1,0 +1,20 @@
+@baseUrl = http://localhost:1904/api
+
+### List/Search Books
+
+GET {{baseUrl}}/books
+
+
+### Get book details
+GET {{baseUrl}}/books/1
+
+### Delete book
+DELETE {{baseUrl}}/books/1
+
+### Update Book
+PUT {{baseUrl}}/books/{id}
+
+- Create book
+POST {{baseUrl}}/books
+
+
