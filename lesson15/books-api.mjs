@@ -26,62 +26,49 @@ export function addBook(req, rsp) {
     let bookRepresentation = req.body
 
     booksService.createBook(bookRepresentation, userId)
-        .then(book => rsp.status(201).send({
+        .then(book => rsp.status(201).json({
             description: `Book created`,
             uri: `/api/books/${book.id}`
         }))
-        .catch(error => badRequest(rsp, error.message))
+        .catch(error => sendError(rsp, error))
 }
 
 export async function getBook(req, rsp) {
     const bookId = req.params.bookId
+    const userId = getUserId(req)
 
-    booksService.getBook(bookId)
+    booksService.getBook(bookId, userId)
         .then(book => rsp.json(book))
-        .catch(error => resourceNotFound(rsp, error.message))
+        .catch(error => sendError(rsp, error))
 }
 
 export function updateBook(req, rsp) {
     const bookRepresentation = req.body
     const bookId = req.params.bookId 
-    booksService.updateBook(bookId, bookRepresentation)
+    const userId = getUserId(req)
+    
+    booksService.updateBook(bookId, bookRepresentation, bookId, userId)
         .then(book => rsp.json({ message: `Book with id ${bookId} updated` }))
-        .catch(error => sendError(rsp, errosMapping(error)))
+        .catch(error => sendError(rsp, error))
 
 }
 
 export function deleteBook(req, rsp) {
     const bookId = req.params.bookId
-    const idxToRemove = BOOKS.findIndex(b => b.id == bookId)
-    if(idxToRemove != -1) {
-        BOOKS.splice(idxToRemove, 1)
-        rsp.json({ message: `Book with id ${bookId} deleted` })
-        return
-    }
-    resourceNotFound(rsp, bookId)
+    const userId = getUserId(req)
+    booksService.deleteBook(bookId, userId)
+        .then(bookId => rsp.json({ message: `Book with id ${bookId} deleted` }))
+        .catch(error => sendError(rsp, error))
 }
 
 ///////// Auxiliary functions
 
-function sendError(rsp, httpError) {
+function sendError(rsp, appError) {
+    const httpError = errosMapping(appError)
     rsp.status(httpError.status).json(httpError.body)
 }
 
 
-function resourceNotFound(rsp, message) {
-    sendStatusResponse(rsp, 404, message)
-}
-
-function badRequest(rsp, message) {
-    sendStatusResponse(rsp, 400, message)
-}
-
-function sendStatusResponse(rsp, status, message) {
-    rsp.status(status)
-        .json({
-            message: message
-        })
-}
 
 
 function getUserId(req) {

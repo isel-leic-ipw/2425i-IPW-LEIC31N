@@ -5,13 +5,13 @@ GET {{prefix}}/books
 
 
 ### Get book details 
-GET {{prefix}}/books/33
+GET {{prefix}}/books/1
 
 ### Delete Book
-DELETE {{prefix}}/books/3
+DELETE {{prefix}}/books/1
 
 ### Update Book
-PUT {{prefix}}/books/3
+PUT {{prefix}}/books/1
 Content-Type: application/json
 
 {
@@ -25,7 +25,7 @@ POST {{prefix}}/books
 Content-Type: application/json
 
 {
-    "title1": "New Book",
+    "title": "New Book",
     "isbn": 902323
 }
 

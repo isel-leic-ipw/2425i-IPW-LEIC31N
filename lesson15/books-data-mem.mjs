@@ -28,7 +28,7 @@ export function getBooks(userId) {
 }
 
 export function createBook(bookCreator, userId) {
-    const newBook = new Book(bookCreator.title, bookCreator.isbn)
+    const newBook = new Book(bookCreator.title, bookCreator.isbn, userId)
     BOOKS.push(newBook)
     return Promise.resolve(newBook)
 }
@@ -37,6 +37,26 @@ export function getBook(bookId) {
     const book = BOOKS.find(b => b.id == bookId)
     if(book) {
         return Promise.resolve(book)
+    }
+    return Promise.reject(errors.NOT_FOUND(`Book with id ${bookId} not found`))
+}
+
+export function updateBook(bookId, bookUpdater, userId) {
+    const book = BOOKS.find(b => b.id == bookId)
+    if(book) {
+        book.title = bookUpdater.title
+        book.isbn = bookUpdater.isbn
+        book.updateCount++
+        return Promise.resolve(book)
+    }
+    return Promise.reject(errors.NOT_FOUND(`Book with id ${bookId} not found`))
+}
+
+export function deleteBook(bookId) {
+    const idxToRemove = BOOKS.findIndex(b => b.id == bookId)
+    if(idxToRemove != -1) {
+        BOOKS.splice(idxToRemove, 1)
+        return Promise.resolve(bookId)
     }
     return Promise.reject(errors.NOT_FOUND(`Book with id ${bookId} not found`))
 }

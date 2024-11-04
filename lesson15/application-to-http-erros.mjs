@@ -9,11 +9,16 @@ function HttpError(status, obj) {
 const ERROR_MAPPING =  {
     [ERROR_CODES.InvalidData]: 400,
     [ERROR_CODES.NotFound]: 404,
-
+    [ERROR_CODES.NotAuthorized]: 403,
 }
+
+const INTERNAL_ERROR = new HttpError(500, { message: `Unexpected error. Contact your administrator`})
 
 
 
 export default function(applicationError) {
-    return new HttpError(ERROR_MAPPING[applicationError.code], { message: applicationError.message})
+    const httpErr = new HttpError(ERROR_MAPPING[applicationError.code], { message: applicationError.message})
+    if(httpErr.status != undefined)
+        return httpErr
+    return INTERNAL_ERROR;
 }

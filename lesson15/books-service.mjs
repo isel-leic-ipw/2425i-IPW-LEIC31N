@@ -31,24 +31,28 @@ export function createBook(bookCreator, userId) {
 export function getBook(bookId, userId) {
     return booksData.getBook(bookId)
         .then(book => {
-            if(book.id == userId)
+            if(book.ownerId == userId)
                 return book
-            return Promise.reject(errors.NOT_AUTHORIZED(`User with id ${userId} does not own book with id ${bookId} `));
+            return Promise.reject(errors.NOT_AUTHORIZED(`User with id ${userId} does not own book with id ${bookId}`));
         
         })    
 }
 
 export function updateBook(bookId, bookUpdater, userId) {
-    const book = BOOKS.find(b => b.id == bookId)
-    if(book) {
-        if(bookUpdater.title && bookUpdater.isbn) {
-            book.title = bookUpdater.title
-            book.isbn = bookUpdater.isbn
-            book.updateCount++
-            return Promise.resolve(book)
-        } else {
-            return Promise.reject(errors.INVALID_DATA(`To update a Book, a title and isbn must be provided`))
-        }
+    
+    if(bookUpdater.title && bookUpdater.isbn) {
+        return booksData.updateBook(bookId, bookUpdater, userId)       
+    } else {
+        return Promise.reject(errors.INVALID_DATA(`To update a Book, a title and isbn must be provided`))
     }
-    return Promise.reject(errors.NOT_FOUND(`Book with id ${bookId} not found`))
+}
+
+export function deleteBook(bookId, userId) {
+    return booksData.getBook(bookId)
+        .then(book => {
+            if(book.id == userId)
+                return booksData.deleteBook(bookId)
+            return Promise.reject(errors.NOT_AUTHORIZED(`User with id ${userId} does not own book with id ${bookId}`));
+        
+        })    
 }
