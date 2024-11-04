@@ -1,62 +1,51 @@
 /**
- * This file contains all HTTP API handling functions, 
- * and all data handling
+ * This file contains all HTTP API handling functions.
  */
 
 import * as booksService from './books-service.mjs'
+import errosMapping from './application-to-http-erros.mjs'
 
 
-export async function getBooks(req, rsp) {
+// export async function getBooks(req, rsp) {
+//     // rsp.type('application/json')
+//         // .send(JSON.stringify(BOOKS))
+//     let books = await booksService.getBooks()
+//     rsp.json(books)
+// }
+
+export function getBooks(req, rsp) {
     // rsp.type('application/json')
         // .send(JSON.stringify(BOOKS))
-    let books = await booksService.getBooks()
-    rsp.json(books)
+    booksService.getBooks()
+        .then(books => rsp.json(books))
 }
 
-export async function addBook(req, rsp) {
+export function addBook(req, rsp) {
     let bookRepresentation = req.body
 
-    if(bookRepresentation.title && bookRepresentation.isbn) {
-        const newBook = new Book(bookRepresentation.title, bookRepresentation.isbn)
-
-        BOOKS.push(newBook)
-
-        rsp.status(201).send({
+    booksService.createBook(bookRepresentation)
+        .then(book => rsp.status(201).send({
             description: `Book created`,
-            uri: `/api/books/${newBook.id}`
-        })
-        return
-    }
-    badRequest(rsp)
+            uri: `/api/books/${book.id}`
+        }))
+        .catch(error => badRequest(rsp, error.message))
 }
 
 export async function getBook(req, rsp) {
     const bookId = req.params.bookId
-    const book = BOOKS.find(b => b.id == bookId)
-    if(book) {
-        rsp.json(book)
-        return
-    } 
-    // Book not found. Inform the client
-    bookNotFound(rsp, bookId)
+
+    booksService.getBook(bookId)
+        .then(book => rsp.json(book))
+        .catch(error => resourceNotFound(rsp, error.message))
 }
 
 export function updateBook(req, rsp) {
     const bookRepresentation = req.body
     const bookId = req.params.bookId 
-    const book = BOOKS.find(b => b.id == bookId)
-    if(book) {
-        if(bookRepresentation.title && bookRepresentation.isbn) {
-            book.title = bookRepresentation.title
-            book.isbn = bookRepresentation.isbn
-            book.updateCount++
-            rsp.json({ message: `Book with id ${bookId} updated` })
-        } else {
-            badRequest(rsp, bookId)
-        }
-        return
-    }
-    bookNotFound(rsp, bookId)
+    booksService.updateBook(bookId, bookRepresentation)
+        .then(book => rsp.json({ message: `Book with id ${bookId} updated` }))
+        .catch(error => sendError(rsp, errosMapping(error)))
+
 }
 
 export function deleteBook(req, rsp) {
@@ -67,18 +56,22 @@ export function deleteBook(req, rsp) {
         rsp.json({ message: `Book with id ${bookId} deleted` })
         return
     }
-    bookNotFound(rsp, bookId)
+    resourceNotFound(rsp, bookId)
 }
 
 ///////// Auxiliary functions
 
-
-function bookNotFound(rsp, bookId) {
-    sendStatusResponse(rsp, 404, `Book with id ${bookId} not found`)
+function sendError(rsp, httpError) {
+    rsp.status(httpError.status).json(httpError.body)
 }
 
-function badRequest(rsp, bookId) {
-    sendStatusResponse(rsp, 400, `Bad request for adding/updating book wit id ${bookId}`)
+
+function resourceNotFound(rsp, message) {
+    sendStatusResponse(rsp, 404, message)
+}
+
+function badRequest(rsp, message) {
+    sendStatusResponse(rsp, 400, message)
 }
 
 function sendStatusResponse(rsp, status, message) {
