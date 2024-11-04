@@ -14,16 +14,18 @@ import errosMapping from './application-to-http-erros.mjs'
 // }
 
 export function getBooks(req, rsp) {
+    const userId = getUserId(req)
     // rsp.type('application/json')
         // .send(JSON.stringify(BOOKS))
-    booksService.getBooks()
+    booksService.getBooks(userId)
         .then(books => rsp.json(books))
 }
 
 export function addBook(req, rsp) {
+    const userId = getUserId(req)
     let bookRepresentation = req.body
 
-    booksService.createBook(bookRepresentation)
+    booksService.createBook(bookRepresentation, userId)
         .then(book => rsp.status(201).send({
             description: `Book created`,
             uri: `/api/books/${book.id}`
@@ -79,4 +81,11 @@ function sendStatusResponse(rsp, status, message) {
         .json({
             message: message
         })
+}
+
+
+function getUserId(req) {
+    // HAMMER TIME: This should be replaced by the proper code to get user id from request
+    const fakeUserId = 1
+    return fakeUserId
 }
