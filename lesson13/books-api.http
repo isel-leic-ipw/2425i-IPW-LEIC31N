@@ -8,7 +8,7 @@ GET {{prefix}}/books
 GET {{prefix}}/books/1
 
 ### Delete Book
-DELETE {{prefix}}/books/1
+DELETE {{prefix}}/books/3
 
 ### Update Book
 PUT {{prefix}}/books/1

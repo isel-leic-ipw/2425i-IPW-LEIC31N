@@ -3,59 +3,87 @@
  * and all data handling
  */
 
-let idNextBook = 0
-
-function Book(title, isbn) {
-    this.id = ++idNextBook
-    this.title = title
-    this.isbn = isbn
-    this.updateCount = 0
-}
+import * as booksService from './books-service.mjs'
 
 
-const BOOKS = [
-    new Book("Book1", 1111111),
-    new Book("Book2", 2222222),
-    new Book("Book3", 3333333),
-    new Book("Book4", 4444444),
-]
-
-export function getBooks(req, rsp) {
+export async function getBooks(req, rsp) {
     // rsp.type('application/json')
         // .send(JSON.stringify(BOOKS))
-    rsp.json(BOOKS)
+    let books = await booksService.getBooks()
+    rsp.json(books)
 }
 
-export function addBook(req, rsp) {
+export async function addBook(req, rsp) {
     let bookRepresentation = req.body
-    const newBook = new Book(bookRepresentation.title, bookRepresentation.isbn)
 
-    BOOKS.push(newBook)
+    if(bookRepresentation.title && bookRepresentation.isbn) {
+        const newBook = new Book(bookRepresentation.title, bookRepresentation.isbn)
+
+        BOOKS.push(newBook)
+
+        rsp.status(201).send({
+            description: `Book created`,
+            uri: `/api/books/${newBook.id}`
+        })
+        return
+    }
+    badRequest(rsp)
 }
 
-export function getBook(req, rsp) {
+export async function getBook(req, rsp) {
     const bookId = req.params.bookId
     const book = BOOKS.find(b => b.id == bookId)
-    rsp.json(book)
-    return
+    if(book) {
+        rsp.json(book)
+        return
+    } 
+    // Book not found. Inform the client
+    bookNotFound(rsp, bookId)
 }
 
 export function updateBook(req, rsp) {
     const bookRepresentation = req.body
-    
     const bookId = req.params.bookId 
     const book = BOOKS.find(b => b.id == bookId)
-    book.title = bookRepresentation.title
-    book.isbn = bookRepresentation.isbn
-    book.updateCount++
-    rsp.json({ message: `Book with id ${bookId} updated` })
+    if(book) {
+        if(bookRepresentation.title && bookRepresentation.isbn) {
+            book.title = bookRepresentation.title
+            book.isbn = bookRepresentation.isbn
+            book.updateCount++
+            rsp.json({ message: `Book with id ${bookId} updated` })
+        } else {
+            badRequest(rsp, bookId)
+        }
+        return
+    }
+    bookNotFound(rsp, bookId)
 }
 
 export function deleteBook(req, rsp) {
     const bookId = req.params.bookId
     const idxToRemove = BOOKS.findIndex(b => b.id == bookId)
-    BOOKS.splice(idxToRemove, 1)
-    rsp.json({ message: `Book with id ${bookId} deleted` })
-    return
+    if(idxToRemove != -1) {
+        BOOKS.splice(idxToRemove, 1)
+        rsp.json({ message: `Book with id ${bookId} deleted` })
+        return
+    }
+    bookNotFound(rsp, bookId)
 }
 
+///////// Auxiliary functions
+
+
+function bookNotFound(rsp, bookId) {
+    sendStatusResponse(rsp, 404, `Book with id ${bookId} not found`)
+}
+
+function badRequest(rsp, bookId) {
+    sendStatusResponse(rsp, 400, `Bad request for adding/updating book wit id ${bookId}`)
+}
+
+function sendStatusResponse(rsp, status, message) {
+    rsp.status(status)
+        .json({
+            message: message
+        })
+}
