@@ -11,7 +11,7 @@ GET {{prefix}}/books/1
 DELETE {{prefix}}/books/1
 
 ### Update Book
-PUT {{prefix}}/books/1
+PUT {{prefix}}/books/2
 Content-Type: application/json
 
 {

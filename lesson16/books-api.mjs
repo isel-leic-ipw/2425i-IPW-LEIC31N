@@ -13,55 +13,71 @@ import errosMapping from './application-to-http-erros.mjs'
 //     rsp.json(books)
 // }
 
-export function getBooks(req, rsp) {
+
+export const getBooks = createHandler(internalGetBooks)
+export const addBook = createHandler(internalAddBook)
+export const getBook = createHandler(internalGetBook)
+export const updateBook = createHandler(internalUpdateBook)
+export const deleteBook = createHandler(internalDeleteBook)
+
+function internalGetBooks(req, rsp) {
     const userId = getUserId(req)
-    // rsp.type('application/json')
-        // .send(JSON.stringify(BOOKS))
-    booksService.getBooks(userId)
-        .then(books => rsp.json(books))
+    return booksService.getBooks(userId).then(
+        books => rsp.json(books)
+    )
 }
 
-export function addBook(req, rsp) {
+function internalAddBook(req, rsp) {
     const userId = getUserId(req)
     let bookRepresentation = req.body
 
-    booksService.createBook(bookRepresentation, userId)
-        .then(book => rsp.status(201).json({
+    return booksService.createBook(bookRepresentation, userId).then(
+        book => rsp.status(201).json({
             description: `Book created`,
             uri: `/api/books/${book.id}`
-        }))
-        .catch(error => sendError(rsp, error))
+        })
+    )
 }
 
-export async function getBook(req, rsp) {
+function internalGetBook(req, rsp) {
     const bookId = req.params.bookId
     const userId = getUserId(req)
 
-    booksService.getBook(bookId, userId)
-        .then(book => rsp.json(book))
-        .catch(error => sendError(rsp, error))
+    return booksService.getBook(bookId, userId).then(
+        book => rsp.json(book)
+    )
 }
 
-export function updateBook(req, rsp) {
+function internalUpdateBook(req, rsp) {
     const bookRepresentation = req.body
     const bookId = req.params.bookId 
     const userId = getUserId(req)
-    
-    booksService.updateBook(bookId, bookRepresentation, bookId, userId)
-        .then(book => rsp.json({ message: `Book with id ${bookId} updated` }))
-        .catch(error => sendError(rsp, error))
 
+    return booksService.updateBook(bookId, bookRepresentation, bookId, userId).then(
+        book => rsp.json({ message: `Book with id ${bookId} updated` })
+    )
 }
 
-export function deleteBook(req, rsp) {
+function internalDeleteBook(req, rsp) {
     const bookId = req.params.bookId
     const userId = getUserId(req)
-    booksService.deleteBook(bookId, userId)
-        .then(bookId => rsp.json({ message: `Book with id ${bookId} deleted` }))
-        .catch(error => sendError(rsp, error))
+
+    return booksService.deleteBook(bookId, userId).then(
+        bookId => rsp.json({ message: `Book with id ${bookId} deleted` })
+    )
 }
 
 ///////// Auxiliary functions
+
+
+function createHandler(specificFunction) {
+    return function (req, rsp) {
+        const promiseResult = specificFunction(req, rsp)
+    
+        promiseResult
+            .catch(error => sendError(rsp, error))
+    }
+}
 
 function sendError(rsp, appError) {
     const httpError = errosMapping(appError)
