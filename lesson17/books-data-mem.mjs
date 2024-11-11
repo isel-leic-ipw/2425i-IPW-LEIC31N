@@ -10,7 +10,6 @@ function Book(title, isbn, ownerId) {
     this.id = ++idNextBook
     this.title = title
     this.isbn = isbn
-    this.updateCount = 0
     this.ownerId = ownerId
 }
 
@@ -46,7 +45,6 @@ export function updateBook(bookId, bookUpdater, userId) {
     if(book) {
         book.title = bookUpdater.title
         book.isbn = bookUpdater.isbn
-        book.updateCount++
         return Promise.resolve(book)
     }
     return Promise.reject(errors.NOT_FOUND(`Book with id ${bookId} not found`))
