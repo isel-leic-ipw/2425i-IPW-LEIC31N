@@ -4,6 +4,7 @@
 
 import * as booksService from './books-service.mjs'
 import errosMapping from './application-to-http-erros.mjs'
+import { isGuid } from 'is-guid'
 
 
 // export async function getBooks(req, rsp) {
@@ -21,17 +22,15 @@ export const updateBook = createHandler(internalUpdateBook)
 export const deleteBook = createHandler(internalDeleteBook)
 
 function internalGetBooks(req, rsp) {
-    const userId = getUserId(req)
-    return booksService.getBooks(userId).then(
+    return booksService.getBooks(req.token).then(
         books => rsp.json(books)
     )
 }
 
 function internalAddBook(req, rsp) {
-    const userId = getUserId(req)
     let bookRepresentation = req.body
 
-    return booksService.createBook(bookRepresentation, userId).then(
+    return booksService.createBook(bookRepresentation, req.token).then(
         book => rsp.status(201).json({
             description: `Book created`,
             uri: `/api/books/${book.id}`
@@ -41,9 +40,9 @@ function internalAddBook(req, rsp) {
 
 function internalGetBook(req, rsp) {
     const bookId = req.params.bookId
-    const userId = getUserId(req)
+    const userToken = req.token
 
-    return booksService.getBook(bookId, userId).then(
+    return booksService.getBook(bookId, userToken).then(
         book => rsp.json(book)
     )
 }
@@ -51,18 +50,19 @@ function internalGetBook(req, rsp) {
 function internalUpdateBook(req, rsp) {
     const bookRepresentation = req.body
     const bookId = req.params.bookId 
-    const userId = getUserId(req)
+    const userToken = req.token
+    
 
-    return booksService.updateBook(bookId, bookRepresentation, bookId, userId).then(
-        book => rsp.json({ message: `Book with id ${bookId} updated` })
+    return booksService.updateBook(bookId, bookRepresentation, bookId, userToken)
+        .then(book => rsp.json({ message: `Book with id ${bookId} updated` })
     )
 }
 
 function internalDeleteBook(req, rsp) {
     const bookId = req.params.bookId
-    const userId = getUserId(req)
+    const userToken = getUserToken(req)
 
-    return booksService.deleteBook(bookId, userId).then(
+    return booksService.deleteBook(bookId, userToken).then(
         bookId => rsp.json({ message: `Book with id ${bookId} deleted` })
     )
 }
@@ -72,6 +72,9 @@ function internalDeleteBook(req, rsp) {
 
 function createHandler(specificFunction) {
     return function (req, rsp) {
+        const userToken = getUserToken(req)
+        req.token = userToken
+
         const promiseResult = specificFunction(req, rsp)
     
         promiseResult
@@ -87,8 +90,16 @@ function sendError(rsp, appError) {
 
 
 
-function getUserId(req) {
+function getUserToken(req) {
     // HAMMER TIME: This should be replaced by the proper code to get user id from request
-    const fakeUserId = 1
-    return fakeUserId
+    //const fakeUserToken = "c176eafd-25eb-45d3-a8cb-7218f3d63b3b"
+    const authHeader = req.get("Authorization")
+    if(!authHeader) {
+        // TODO send unauthorized error to client
+    }
+    const authHeaderParts = authHeader.split(" ")
+    if(authHeaderParts.length != 2 || authHeaderParts[0] != "Basic" || !isGuid(authHeaderParts[1])) {
+        // TODO send bad request error to client
+    }
+    return authHeaderParts[1]
 }

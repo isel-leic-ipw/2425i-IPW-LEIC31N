@@ -1,5 +1,5 @@
 {
-  "name": "lesson18",
+  "name": "lesson17",
   "lockfileVersion": 3,
   "requires": true,
   "packages": {
@@ -7,7 +7,6 @@
       "dependencies": {
         "cors": "^2.8.5",
         "express": "^4.21.1",
-        "is-guid": "^0.0.2",
         "swagger-ui-express": "^5.0.1",
         "yamljs": "^0.3.0"
       }
@@ -469,11 +468,6 @@
       "engines": {
         "node": ">= 0.10"
       }
-    },
-    "node_modules/is-guid": {
-      "version": "0.0.2",
-      "resolved": "https://registry.npmjs.org/is-guid/-/is-guid-0.0.2.tgz",
-      "integrity": "sha512-SEMdaAErvTuIRV1fvgRVcu8mp1m4E0G/seKRnX30XCae3OyhZZMQH7SEXbmlOfnCHyb9b+i4zGkh5IXi7XZJUg=="
     },
     "node_modules/media-typer": {
       "version": "0.3.0",
