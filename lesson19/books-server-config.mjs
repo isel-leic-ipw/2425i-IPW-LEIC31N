@@ -9,6 +9,8 @@ console.log("Server-config loaded")
 
 export default function(app) {
     app.use(express.json())
+    app.use(api.extractToken)
+    app.use(countReq, showRequestData)
 
     // Web Application Resources URIs
     const RESOURCES = {
@@ -17,11 +19,26 @@ export default function(app) {
     }
 
     // Web Application Routes
+    
     app.get(RESOURCES.BOOKS, api.getBooks)
     app.post(RESOURCES.BOOKS, api.addBook)
 
     app.get(RESOURCES.BOOK, api.getBook)
     app.put(RESOURCES.BOOK, api.updateBook)
     app.delete(RESOURCES.BOOK, api.deleteBook)
+
+    let count = 1
+    function countReq(req, rsp, next) {
+        console.log(`Number of requests: ${count++}`)
+        console.log(`Token: ${req.token}`)
+        next()
+    }
+
+    function showRequestData(req, rsp, next) {
+        console.log(`Request method: ${req.method}`)
+        console.log(`Request uri: ${req.originalUrl}`)
+        next()
+    }
+
 }
 
