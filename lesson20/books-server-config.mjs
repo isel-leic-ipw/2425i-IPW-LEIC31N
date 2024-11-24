@@ -9,12 +9,14 @@ console.log("Server-config loaded")
 
 export default function(app) {
     app.use(express.json())
-    app.use(api.extractToken)
     app.use(countReq, showRequestData)
+    app.use(api.extractToken)
 
     // Web Application Resources URIs
     const RESOURCES = {
-        BOOKS: '/api/books',
+        // Resource URI that represents ALL Books
+        BOOKS: '/api/books',    
+        // Resource URI that represents ONE Book
         BOOK: '/api/books/:bookId'
     }
 
@@ -30,7 +32,6 @@ export default function(app) {
     let count = 1
     function countReq(req, rsp, next) {
         console.log(`Number of requests: ${count++}`)
-        console.log(`Token: ${req.token}`)
         next()
     }
 
