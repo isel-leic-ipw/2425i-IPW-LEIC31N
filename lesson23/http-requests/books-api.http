@@ -46,4 +46,8 @@ Content-Type: application/json
 GET {{prefix}}/dsfdsfds 
 
 
+### 
+GET https://www.google.pt/
+
+
 
