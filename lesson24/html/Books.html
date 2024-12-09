@@ -3,12 +3,24 @@
   <head>
     <meta charset="utf-8">
     <title>Hello World</title>
+    <link rel="stylesheet" href="my-styles.css"/>
     <style>
-      body1 { font-size: 10px; color: rgb(255, 0, 0) }
-      span.labels { font-style: italic; text-transform:capitalize}
+      body { font-size: 20px; }
+      .emphasis { text-transform: uppercase;}
+      div, span { border: 1px solid black;} 
+      span.dummy { display: inline-block; width: 500px;}
+      div.absolute { position: absolute; top: 700px; left: 600px; display: inline-block; width: 500px; background-color: bisque;}
     </style>
   </head>
   <body>
+    <div class="absolute">Div content</div>
+    <span>Span Content</span>
+    <div>Div content</div>
+    <span class="dummy">
+      Span Content 
+      <div>Div inside</div>
+    </span>
+    <span>Span Content</span>
     <header>
       <h1>All books from my collection</h1>
     </header>
@@ -16,7 +28,10 @@
       <article>
           <section>
             <!-- Main Book Info -->
-             <p>Title: Book1</p>
+             
+            <p class="emphasis">Title: Book1</p>
+            <p class="emphasis">Description: Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+            
              <p>Isbn: <span>93028490238490328904</span></p>
           </section>
           <section>
