@@ -14,7 +14,7 @@ function Book(title, isbn, ownerId) {
 }
 
 
-const BOOKS = [
+const DEFAULT_BOOKS = [
     new Book("Book1", 1111111, 1),
     new Book("Book2", 2222222, 1),
     new Book("Book3", 3333333, 2),
@@ -23,41 +23,51 @@ const BOOKS = [
 
 
 
-export function getBooks(userId) {
-    return Promise.resolve(BOOKS.filter(b => b.ownerId == userId))
-}
-
-export function createBook(bookCreator, userId) {
-    const newBook = new Book(bookCreator.title, bookCreator.isbn, userId)
-    BOOKS.push(newBook)
-    return Promise.resolve(newBook)
-}
-
-export function getBook(bookId) {
-    const book = BOOKS.find(b => b.id == bookId)
-    if(book) {
-        return Promise.resolve(book)
+export default function(BOOKS = DEFAULT_BOOKS) {
+    return {
+        getBook: getBook,
+        getBooks: getBooks,
+        createBook: createBook,
+        updateBook: updateBook,
+        deleteBook: deleteBook
     }
-    return Promise.reject(errors.NOT_FOUND(`Book with id ${bookId} not found`))
-}
 
-export function updateBook(bookId, bookUpdater, userId) {
-    const book = BOOKS.find(b => b.id == bookId)
-    if(book) {
-        book.title = bookUpdater.title
-        book.isbn = bookUpdater.isbn
-        return Promise.resolve(book)
+    function getBooks(userId) {
+        return Promise.resolve(BOOKS.filter(b => b.ownerId == userId))
     }
-    return Promise.reject(errors.NOT_FOUND(`Book with id ${bookId} not found`))
-}
-
-export function deleteBook(bookId) {
-    const idxToRemove = BOOKS.findIndex(b => b.id == bookId)
-    if(idxToRemove != -1) {
-        BOOKS.splice(idxToRemove, 1)
-        return Promise.resolve(bookId)
+    
+    function createBook(bookCreator, userId) {
+        const newBook = new Book(bookCreator.title, bookCreator.isbn, userId)
+        BOOKS.push(newBook)
+        return Promise.resolve(newBook)
     }
-    return Promise.reject(errors.NOT_FOUND(`Book with id ${bookId} not found`))
+    
+    function getBook(bookId) {
+        const book = BOOKS.find(b => b.id == bookId)
+        if(book) {
+            return Promise.resolve(book)
+        }
+        return Promise.reject(errors.NOT_FOUND(`Book with id ${bookId} not found`))
+    }
+    
+    function updateBook(bookId, bookUpdater, userId) {
+        const book = BOOKS.find(b => b.id == bookId)
+        if(book) {
+            book.title = bookUpdater.title
+            book.isbn = bookUpdater.isbn
+            return Promise.resolve(book)
+        }
+        return Promise.reject(errors.NOT_FOUND(`Book with id ${bookId} not found`))
+    }
+    
+    function deleteBook(bookId) {
+        const idxToRemove = BOOKS.findIndex(b => b.id == bookId)
+        if(idxToRemove != -1) {
+            BOOKS.splice(idxToRemove, 1)
+            return Promise.resolve(bookId)
+        }
+        return Promise.reject(errors.NOT_FOUND(`Book with id ${bookId} not found`))
+    }    
 }
 
 
