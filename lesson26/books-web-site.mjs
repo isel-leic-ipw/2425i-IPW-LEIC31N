@@ -7,79 +7,68 @@ import express from 'express'
 
 import errosMapping from './application-to-http-erros.mjs'
 
+const BOOKS = '/books'
+const BOOK = `${BOOKS}/:bookId`
+
+
+const RESOURCES_WEB_SITE = {
+    // Resource URI that represents ALL Books
+    BOOKS: BOOKS,    
+    // Resource URI that represents ONE Book
+    BOOK: BOOK,
+    // Resource URI that represents a HTML form to create a book
+    BOOK_CREATE: `${BOOKS}/form-creator`,
+    // Resource URI that represents a HTML form to update/edit a book
+    BOOK_EDIT: `${BOOK}/form-editor`,
+    // Resource URI that represents to delete a Book
+    BOOK_DELETE: `${BOOK}/delete`
+}
+
 export default function(services) {
-    // const app = express.Router()
+    const router = express.Router()
 
-    // app.get('/books', createHandler(getBooks))           // Get all books
-    // app.get('/books/:id', createHandler(getBook))        // Get a book details
-    // app.delete('/books/:id', createHandler(deleteBook))  // Delete a book
-    // app.put('/books/:id', createHandler(updateBook))     // Update a book
-    // app.post('/books', createHandler(createBook))        // Delete a book
+    router.get(RESOURCES_WEB_SITE.BOOKS, handlerWrapper(getBooks))
+    // router.post(RESOURCES_WEB_SITE.BOOKS, handlerWrapper(addBook))
+    // router.get(RESOURCES_WEB_SITE.BOOK_CREATE, getFormCreate)
+    // router.get(RESOURCES_WEB_SITE.BOOK_EDIT, getFormEditor)
+    router.get(RESOURCES_WEB_SITE.BOOK, handlerWrapper(getBook))
+    // router.post(RESOURCES_WEB_SITE.BOOK, updateBook)
+    // router.post(RESOURCES_WEB_SITE.BOOK_DELETE, deleteBook)
+    
+    return router
 
-    // return app
 
-    return {
-        getBooks :  createHandler(getBooks),
-        addBook: createHandler(createBook),
-        getBook: createHandler(getBook),
-        updateBook: createHandler(updateBook),
-        deleteBook: createHandler(deleteBook),
-        getFormCreate: getFormCreate,
-        extractToken: extractToken
-        
-    }
-
-    function extractToken(req, rsp, next) {
+    function setUserToken(req) {
         // Hammer time. Frankenstein here gets even uglier....
-        req.token = 'c176eafd-25eb-45d3-a8cb-7218f3d63b3b'
-        next()
+        req.user = {
+            name: 'Bob o Construtor', 
+            email: 'bob@construrtor.pt',
+            token: 'c176eafd-25eb-45d3-a8cb-7218f3d63b3b'
+        }
     }
     
 
-    function getFormCreate(req, rsp) {
-        const formCreate = `
-        <!DOCTYPE html>
-        <html>
-            <body>
 
-                <h2>Create Book</h2>
-
-                <form action="/site/books" method=POST>
-                    <label for="title">Title:</label><br>
-                    <input type="text" id="title" name="title" value=""><br>
-                    <label for="isbn">ISBN:</label><br>
-                    <input type="text" id="isbn" name="isbn" value=""><br>
-                    <br>
-                    <input type="submit" value="Submit">
-                </form> 
-
-                <p>If you click the "Submit" button, the form-data will be sent to a page called "/action_page.php".</p>
-
-            </body>
-        </html>  
-        `
-        rsp.send(formCreate)
-
-
-    }
-
-
-    function createHandler(specificFunction) {
-        return function (req, rsp, next) {
-            const promiseResult = specificFunction(req, rsp)
-    
-            promiseResult
-                .catch(error => sendError(rsp, error))
+    function handlerWrapper(handler) {
+        return async function(req, rsp) {
+            setUserToken(req)
+            console.log(req.token)
+            try {
+                handler(req, rsp)
+            } catch(e) {
+               const error = handleError(e) 
+               rsp.status(error.status).json(error.body)
+            }    
         }
     }
 
     async function getBooks(req, resp) {
-        const books = await services.getBooks(req.token)
-        resp.render('books', {g: books})
+        const books = await services.getBooks(req.user.token)
+        resp.render('books', { username: req.user.name, books: books})
     }
 
     async function getBook(req, resp) {
-        const book = await services.getBook(req.token, req.params.id)
+        const book = await services.getBook(req.params.bookId, req.user.token)
         resp.render('book', book)
     }
 
@@ -87,10 +76,9 @@ export default function(services) {
         await services.updateBook(req.token, req.params.id, req.body.name, req.body.description)
     }
 
-    async function createBook(req, resp) {
+    async function addBook(req, resp) {
         resp.status(201)
-        await services.createBook(req.body, req.token)
-        rsp.send("book created")
+        return await services.createBook(req.token, req.body.name, req.body.description)
     }
 
     async function deleteBook(req, resp) {

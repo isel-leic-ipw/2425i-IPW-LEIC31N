@@ -69,6 +69,3 @@ export default function(BOOKS = DEFAULT_BOOKS) {
         return Promise.reject(errors.NOT_FOUND(`Book with id ${bookId} not found`))
     }    
 }
-
-
-
