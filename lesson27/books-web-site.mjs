@@ -33,7 +33,7 @@ export default function(services) {
     // router.get(RESOURCES_WEB_SITE.BOOK_EDIT, getFormEditor)
     router.get(RESOURCES_WEB_SITE.BOOK, handlerWrapper(getBook))
     // router.post(RESOURCES_WEB_SITE.BOOK, updateBook)
-    // router.post(RESOURCES_WEB_SITE.BOOK_DELETE, deleteBook)
+    router.post(RESOURCES_WEB_SITE.BOOK_DELETE, handlerWrapper(deleteBook))
     
     return router
 
@@ -82,6 +82,8 @@ export default function(services) {
     }
 
     async function deleteBook(req, resp) {
-        await services.deleteBook(req.token, req.params.id)
+        await services.deleteBook(req.params.bookId, req.user.token)
+        //resp.status(302).set("Location", "/site/books").end()
+        resp.redirect("/site/books")
     }
 }

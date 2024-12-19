@@ -2,10 +2,18 @@
  * Configures the express HTTP application (including routes and middlewares)
  */
 
+
+
 import express from 'express'
 import { fileURLToPath } from 'url';
 import path from 'path';
 import hbs from 'hbs'
+
+import cookieParser from 'cookie-parser'
+//import session from './my-session.mjs'
+import session from 'express-session'
+import fileStore from 'session-file-store'
+
 
 import booksDataInit from './data/books-data-mem.mjs'
 //import booksDataInit from './data/books-data-es.mjs'
@@ -39,7 +47,19 @@ export default function(app) {
     app.set('view engine', 'hbs');
     hbs.registerPartials(partialsPath);
 
-    app.use(countReq, showRequestData)
+    //app.use(sessionMw)
+    app.use(cookieParser())
+    //app.use(session())
+    const FileStore = fileStore(session)
+    app.use(session({
+        secret: "Benfica campeão 2024/2024?!",
+        resave: false,
+        saveUninitialized: false,
+        store: new FileStore()
+    }
+    ))
+
+    app.use(countReq, countReqSession, showRequestData)
     
 
     // Web Api Application Routes
@@ -49,16 +69,53 @@ export default function(app) {
     app.use('/site', siteRouter)
     
 
-
     let count = 1
     function countReq(req, rsp, next) {
         console.log(`Number of requests: ${count++}`)
         next()
     }
 
+    
+
     function showRequestData(req, rsp, next) {
         console.log(`Request method: ${req.method}`)
         console.log(`Request uri: ${req.originalUrl}`)
+        next()
+    }
+
+
+    function countReqSession(req, rsp, next) {
+        //req.session.count = req.session.count ? +req.session.count : 1
+        req.session.count = (req.session.count || 0) + 1
+
+        console.log(`Number of requests for session is: ${req.session.count}`)
+        next()
+    }
+
+
+    const SESSIONS = []
+    const SESSION_COOKIE_NAME = "_slb_"
+
+    function sessionMw(req, rsp, next) {
+        const cookie = req.get("Cookie")
+        let idSession
+        let name, id
+
+        if(cookie) {
+            [name, id] = cookie.split("=")
+            id=Number(id)
+        }
+
+        if(!cookie || name != SESSION_COOKIE_NAME || id == NaN || id < 0 || id >= SESSIONS.length) {
+            SESSIONS.push({ })
+            id = SESSIONS.length-1
+            rsp.set("Set-Cookie", `${SESSION_COOKIE_NAME}=${id}`)
+
+        } 
+
+        const sessionObj = SESSIONS[id]
+        req.session = sessionObj
+
         next()
     }
 
